@@ -1,6 +1,6 @@
 // src/app/airlines/[id]/page.tsx
 import { getAirline } from '@/lib/api';
-
+import Link from 'next/link';
 
 export default async function AirlineDetailPage({
   params,

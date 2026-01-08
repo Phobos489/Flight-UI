@@ -1,6 +1,7 @@
 // src/app/flights/[id]/page.tsx
 import { getFlight, formatTime, formatDate } from '@/lib/api';
 import StatusBadge from '@/components/StatusBadge';
+import Link from 'next/link';
 
 export default async function FlightDetailPage({
   params,

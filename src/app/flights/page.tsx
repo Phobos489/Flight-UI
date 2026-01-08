@@ -1,7 +1,7 @@
 // src/app/flights/page.tsx
 import { getFlights } from '@/lib/api';
 import FlightBoard from '@/components/FlightBoard';
-
+import Link from 'next/link';
 
 export const metadata = {
   title: 'Semua Penerbangan - FlightInfo',
