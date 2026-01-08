@@ -5,6 +5,10 @@ interface AirportCardProps {
 }
 
 export default function AirportCard({ airport }: AirportCardProps) {
+  // Convert latitude and longitude to numbers for display
+  const lat = airport.latitude ? Number(airport.latitude) : null;
+  const lng = airport.longitude ? Number(airport.longitude) : null;
+
   return (
     <div className="overflow-hidden rounded-lg border border-gray-200 bg-white p-6 shadow-sm transition-shadow hover:shadow-md dark:border-zinc-800 dark:bg-zinc-900">
       <div className="flex items-start gap-4">
@@ -34,9 +38,9 @@ export default function AirportCard({ airport }: AirportCardProps) {
               </span>
             )}
           </div>
-          {(airport.latitude && airport.longitude) && (
+          {(lat !== null && lng !== null && !isNaN(lat) && !isNaN(lng)) && (
             <p className="mt-2 text-xs text-gray-500 dark:text-gray-500">
-              📍 {airport.latitude.toFixed(4)}, {airport.longitude.toFixed(4)}
+              📍 {lat.toFixed(4)}, {lng.toFixed(4)}
             </p>
           )}
         </div>

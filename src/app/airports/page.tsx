@@ -1,9 +1,10 @@
 import { getAirports } from '@/lib/api';
 import AirportCard from '@/components/AirportCard';
+import { Airport } from '@/types';
 
 export default async function AirportsPage() {
-  let airports = [];
-  let error = null;
+  let airports: Airport[] = [];
+  let error: string | null = null;
 
   try {
     airports = await getAirports();

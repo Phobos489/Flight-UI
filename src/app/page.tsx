@@ -1,9 +1,10 @@
 import { getFlights } from '@/lib/api';
 import FlightCard from '@/components/FlightCard';
+import { Flight } from '@/types';
 
 export default async function Home() {
-  let flights = [];
-  let error = null;
+  let flights: Flight[] = [];
+  let error: string | null = null;
 
   try {
     flights = await getFlights();
