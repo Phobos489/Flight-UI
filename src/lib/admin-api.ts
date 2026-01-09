@@ -12,7 +12,6 @@ async function fetchApi<T>(
       ...options,
       headers: {
         'Accept': 'application/json',
-        'Content-Type': 'application/json',
         ...options?.headers,
       },
     });
@@ -29,10 +28,36 @@ async function fetchApi<T>(
   }
 }
 
-// Airlines
+// Airlines with File Upload
+export async function createAirlineWithUpload(formData: FormData) {
+  return fetchApi('/airlines', {
+    method: 'POST',
+    body: formData,
+    headers: {
+      // Don't set Content-Type, let browser set it with boundary
+    },
+  });
+}
+
+export async function updateAirlineWithUpload(id: number, formData: FormData) {
+  // Laravel doesn't support PUT with FormData directly, use POST with _method
+  formData.append('_method', 'PUT');
+  return fetchApi(`/airlines/${id}`, {
+    method: 'POST',
+    body: formData,
+    headers: {
+      // Don't set Content-Type, let browser set it with boundary
+    },
+  });
+}
+
+// Airlines (without file upload)
 export async function createAirline(data: Partial<Airline>) {
   return fetchApi('/airlines', {
     method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
     body: JSON.stringify(data),
   });
 }
@@ -40,6 +65,9 @@ export async function createAirline(data: Partial<Airline>) {
 export async function updateAirline(id: number, data: Partial<Airline>) {
   return fetchApi(`/airlines/${id}`, {
     method: 'PUT',
+    headers: {
+      'Content-Type': 'application/json',
+    },
     body: JSON.stringify(data),
   });
 }
@@ -54,6 +82,9 @@ export async function deleteAirline(id: number) {
 export async function createAirport(data: Partial<Airport>) {
   return fetchApi('/airports', {
     method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
     body: JSON.stringify(data),
   });
 }
@@ -61,6 +92,9 @@ export async function createAirport(data: Partial<Airport>) {
 export async function updateAirport(id: number, data: Partial<Airport>) {
   return fetchApi(`/airports/${id}`, {
     method: 'PUT',
+    headers: {
+      'Content-Type': 'application/json',
+    },
     body: JSON.stringify(data),
   });
 }
@@ -75,6 +109,9 @@ export async function deleteAirport(id: number) {
 export async function createFlight(data: Partial<Flight>) {
   return fetchApi('/flights', {
     method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
     body: JSON.stringify(data),
   });
 }
@@ -82,6 +119,9 @@ export async function createFlight(data: Partial<Flight>) {
 export async function updateFlight(id: number, data: Partial<Flight>) {
   return fetchApi(`/flights/${id}`, {
     method: 'PUT',
+    headers: {
+      'Content-Type': 'application/json',
+    },
     body: JSON.stringify(data),
   });
 }
@@ -99,6 +139,9 @@ export async function updateFlightStatus(
 ) {
   return fetchApi(`/flights/${id}/status`, {
     method: 'PATCH',
+    headers: {
+      'Content-Type': 'application/json',
+    },
     body: JSON.stringify({ status, remarks }),
   });
 }

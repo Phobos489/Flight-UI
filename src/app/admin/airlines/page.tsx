@@ -3,14 +3,17 @@
 
 import { useState, useEffect } from 'react';
 import { getAirlines } from '@/lib/api';
-import { createAirline, updateAirline, deleteAirline } from '@/lib/admin-api';
+import { createAirlineWithUpload, updateAirlineWithUpload, deleteAirline } from '@/lib/admin-api';
 import { Airline } from '@/types';
+import Image from 'next/image';
 
 export default function AdminAirlinesPage() {
   const [airlines, setAirlines] = useState<Airline[]>([]);
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
   const [editingAirline, setEditingAirline] = useState<Airline | null>(null);
+  const [logoFile, setLogoFile] = useState<File | null>(null);
+  const [logoPreview, setLogoPreview] = useState<string | null>(null);
   const [formData, setFormData] = useState({
     code: '',
     name: '',
@@ -35,14 +38,53 @@ export default function AdminAirlinesPage() {
     }
   };
 
+  const handleLogoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      // Validasi ukuran file (max 2MB)
+      if (file.size > 2 * 1024 * 1024) {
+        alert('Ukuran file terlalu besar. Maksimal 2MB');
+        return;
+      }
+
+      // Validasi tipe file
+      if (!file.type.startsWith('image/')) {
+        alert('File harus berupa gambar');
+        return;
+      }
+
+      setLogoFile(file);
+      
+      // Create preview
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setLogoPreview(reader.result as string);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
+      const formDataToSend = new FormData();
+      formDataToSend.append('code', formData.code);
+      formDataToSend.append('name', formData.name);
+      formDataToSend.append('country', formData.country);
+      formDataToSend.append('is_active', formData.is_active ? '1' : '0');
+
+      // If logo file is selected, add it
+      if (logoFile) {
+        formDataToSend.append('logo', logoFile);
+      } else if (formData.logo_url) {
+        formDataToSend.append('logo_url', formData.logo_url);
+      }
+
       if (editingAirline) {
-        await updateAirline(editingAirline.id, formData);
+        await updateAirlineWithUpload(editingAirline.id, formDataToSend);
         alert('Maskapai berhasil diupdate!');
       } else {
-        await createAirline(formData);
+        await createAirlineWithUpload(formDataToSend);
         alert('Maskapai berhasil ditambahkan!');
       }
       resetForm();
@@ -62,6 +104,7 @@ export default function AdminAirlinesPage() {
       country: airline.country,
       is_active: airline.is_active,
     });
+    setLogoPreview(airline.logo_url || null);
     setShowForm(true);
   };
 
@@ -86,6 +129,8 @@ export default function AdminAirlinesPage() {
       country: 'Indonesia',
       is_active: true,
     });
+    setLogoFile(null);
+    setLogoPreview(null);
     setEditingAirline(null);
     setShowForm(false);
   };
@@ -159,19 +204,6 @@ export default function AdminAirlinesPage() {
 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                    URL Logo
-                  </label>
-                  <input
-                    type="url"
-                    value={formData.logo_url}
-                    onChange={(e) => setFormData({ ...formData, logo_url: e.target.value })}
-                    className="w-full px-4 py-2 rounded-lg border border-gray-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500"
-                    placeholder="https://example.com/logo.png"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                     Negara
                   </label>
                   <input
@@ -182,7 +214,53 @@ export default function AdminAirlinesPage() {
                     placeholder="Indonesia"
                   />
                 </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                    Upload Logo
+                  </label>
+                  <input
+                    type="file"
+                    accept="image/*"
+                    onChange={handleLogoChange}
+                    className="w-full px-4 py-2 rounded-lg border border-gray-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500"
+                  />
+                  <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                    Format: JPG, PNG, GIF. Max: 2MB
+                  </p>
+                </div>
+
+                <div className="md:col-span-2">
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                    Atau URL Logo (opsional)
+                  </label>
+                  <input
+                    type="url"
+                    value={formData.logo_url}
+                    onChange={(e) => setFormData({ ...formData, logo_url: e.target.value })}
+                    className="w-full px-4 py-2 rounded-lg border border-gray-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500"
+                    placeholder="https://example.com/logo.png"
+                    disabled={!!logoFile}
+                  />
+                </div>
               </div>
+
+              {/* Logo Preview */}
+              {logoPreview && (
+                <div className="rounded-lg border border-gray-200 dark:border-zinc-700 p-4">
+                  <p className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                    Preview Logo:
+                  </p>
+                  <div className="relative w-32 h-32 rounded-lg overflow-hidden bg-gray-100 dark:bg-zinc-800">
+                    <Image
+                      src={logoPreview}
+                      alt="Logo preview"
+                      fill
+                      className="object-contain"
+                    />
+                  </div>
+                </div>
+              )}
 
               <div className="flex items-center gap-2">
                 <input
@@ -227,9 +305,22 @@ export default function AdminAirlinesPage() {
             >
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-4">
-                  <div className="flex h-16 w-16 items-center justify-center rounded-xl bg-gradient-to-br from-blue-500 to-blue-600 text-2xl font-black text-white shadow-lg">
-                    {airline.code}
-                  </div>
+                  {/* Logo or Code Badge */}
+                  {airline.logo_url ? (
+                    <div className="relative h-16 w-16 rounded-xl overflow-hidden bg-gray-100 dark:bg-zinc-800 shadow-lg">
+                      <Image
+                        src={airline.logo_url}
+                        alt={airline.name}
+                        fill
+                        className="object-contain p-2"
+                        unoptimized={airline.logo_url.includes('localhost')}
+                      />
+                    </div>
+                  ) : (
+                    <div className="flex h-16 w-16 items-center justify-center rounded-xl bg-gradient-to-br from-blue-500 to-blue-600 text-2xl font-black text-white shadow-lg">
+                      {airline.code}
+                    </div>
+                  )}
                   <div>
                     <h3 className="text-xl font-bold text-gray-900 dark:text-white">
                       {airline.name}

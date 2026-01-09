@@ -1,4 +1,5 @@
 import { Airline } from '@/types';
+import Image from 'next/image';
 
 interface AirlineCardProps {
   airline: Airline;
@@ -12,13 +13,25 @@ export default function AirlineCard({ airline }: AirlineCardProps) {
       
       <div className="relative p-6 z-10">
         <div className="flex items-start gap-4">
-          {/* Airline code badge */}
+          {/* Logo or Airline code badge */}
           <div className="relative">
-            <div className="flex h-20 w-20 items-center justify-center rounded-2xl bg-gradient-to-br from-blue-500 to-cyan-600 shadow-xl shadow-blue-500/30 transition-transform duration-300 group-hover:scale-110 group-hover:rotate-3">
-              <span className="text-3xl font-black text-white drop-shadow-lg">
-                {airline.code}
-              </span>
-            </div>
+            {airline.logo_url ? (
+              <div className="relative h-20 w-20 rounded-2xl overflow-hidden bg-white dark:bg-zinc-800 shadow-xl shadow-blue-500/30 transition-transform duration-300 group-hover:scale-110 group-hover:rotate-3 border-2 border-gray-100 dark:border-zinc-700">
+                <Image
+                  src={airline.logo_url}
+                  alt={airline.name}
+                  fill
+                  className="object-contain p-2"
+                  unoptimized={airline.logo_url.includes('localhost')}
+                />
+              </div>
+            ) : (
+              <div className="flex h-20 w-20 items-center justify-center rounded-2xl bg-gradient-to-br from-blue-500 to-cyan-600 shadow-xl shadow-blue-500/30 transition-transform duration-300 group-hover:scale-110 group-hover:rotate-3">
+                <span className="text-3xl font-black text-white drop-shadow-lg">
+                  {airline.code}
+                </span>
+              </div>
+            )}
             {/* Pulse animation ring */}
             <div className="absolute inset-0 rounded-2xl bg-blue-400 animate-ping opacity-20" />
           </div>
@@ -48,18 +61,6 @@ export default function AirlineCard({ airline }: AirlineCardProps) {
                 </div>
               )}
             </div>
-
-            {/* Logo URL if available */}
-            {airline.logo_url && (
-              <div className="mt-3 px-3 py-2 rounded-lg bg-gradient-to-r from-blue-50 to-cyan-50 dark:from-blue-900/20 dark:to-cyan-900/20 border border-blue-200 dark:border-blue-800">
-                <p className="text-xs font-semibold text-blue-900 dark:text-blue-200 mb-1">
-                  🔗 Logo URL
-                </p>
-                <p className="text-xs font-mono text-blue-700 dark:text-blue-300 truncate">
-                  {airline.logo_url}
-                </p>
-              </div>
-            )}
           </div>
         </div>
 
